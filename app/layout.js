@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "급여 관리 시스템",
-  description: "레스토랑 근무 시간 및 팁 관리",
+  title: "system",
+  description: "for SY",
 };
 
 export default function RootLayout({ children }) {
