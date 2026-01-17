@@ -1,10 +1,116 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, DollarSign, Clock, TrendingUp } from 'lucide-react';
+import { Calendar, DollarSign, Clock, TrendingUp, Globe } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
+const translations = {
+  en: {
+    title: "Payroll Management System",
+    subtitle: "Bi-weekly timesheet tracker for myself (forgetting hours = losing money 💸)",
+    hourlyRate: "Hourly Rate (CAD)",
+    deductions: "Deduction Rates (%)",
+    totalDeductions: "Total Deduction Rate",
+    date: "Date",
+    startTime: "Start Time",
+    endTime: "End Time",
+    workHours: "Work Hours (Auto-calculated)",
+    autoCalculated: "Automatically calculated",
+    tips: "Tips (CAD)",
+    holiday: "Holiday (1.5x)",
+    save: "Save Work Record",
+    edit: "Edit Complete",
+    cancel: "Cancel",
+    statistics: "Statistics",
+    copyReport: "Copy Report",
+    recent: "Recent",
+    selectPeriod: "Select Period",
+    last2weeks: "Last 2 Weeks",
+    last4weeks: "Last 4 Weeks",
+    startDate: "Start Date",
+    endDate: "End Date",
+    totalHours: "Total Hours",
+    regular: "Regular",
+    grossPay: "Gross Pay",
+    totalDeduction: "Total Deductions",
+    netPay: "Net Pay",
+    totalIncome: "Total Income",
+    workRecords: "Work Records",
+    time: "Time",
+    deduction: "Deduction",
+    received: "Received",
+    modify: "Edit",
+    delete: "Delete",
+    noRecords: "No records yet.",
+    loading: "Loading...",
+    saveSuccess: "Saved successfully! ",
+    editSuccess: "Updated successfully! ",
+    deleteSuccess: "Deleted successfully! ",
+    saveFailed: "Save failed: ",
+    deleteFailed: "Delete failed: ",
+    reportCopied: "Report copied to clipboard! ",
+    noRecordsForReport: "No records available!",
+    enterWorkHours: "Please enter work hours!",
+    cpp: "CPP",
+    ei: "EI",
+    incomeTax: "Income Tax"
+  },
+  ko: {
+    title: "급여 관리 시스템",
+    subtitle: "나의 2주 월급을 위하여...💸",
+    hourlyRate: "시급 설정 (CAD)",
+    deductions: "공제율 설정 (%)",
+    totalDeductions: "총 공제율",
+    date: "날짜",
+    startTime: "시작 시간",
+    endTime: "끝 시간",
+    workHours: "근무 시간 (자동 계산)",
+    autoCalculated: "자동으로 계산됩니다",
+    tips: "팁 (CAD)",
+    holiday: "홀리데이 (1.5배)",
+    save: "근무 기록 저장",
+    edit: "수정 완료",
+    cancel: "취소",
+    statistics: "통계",
+    copyReport: "리포트 복사",
+    recent: "최근",
+    selectPeriod: "기간 선택",
+    last2weeks: "최근 2주",
+    last4weeks: "최근 4주",
+    startDate: "시작일",
+    endDate: "종료일",
+    totalHours: "총 근무시간",
+    regular: "일반",
+    grossPay: "총 급여",
+    totalDeduction: "총 공제",
+    netPay: "실수령액",
+    totalIncome: "총 수입",
+    workRecords: "근무 기록",
+    time: "시간",
+    deduction: "공제",
+    received: "실수령",
+    modify: "수정",
+    delete: "삭제",
+    noRecords: "아직 기록이 없습니다.",
+    loading: "로딩 중...",
+    saveSuccess: "저장 성공! ✅",
+    editSuccess: "수정 성공! ✅",
+    deleteSuccess: "삭제 성공! ✅",
+    saveFailed: "저장 실패: ",
+    deleteFailed: "삭제 실패: ",
+    reportCopied: "리포트가 클립보드에 복사되었습니다! 📋",
+    noRecordsForReport: "기록이 없습니다!",
+    enterWorkHours: "근무 시간을 입력해주세요!",
+    cpp: "CPP",
+    ei: "EI",
+    incomeTax: "소득세"
+  }
+};
+
 export default function PayrollTracker() {
+  const [lang, setLang] = useState('en');
+  const t = translations[lang];
+
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentEntry, setCurrentEntry] = useState({
@@ -90,7 +196,7 @@ export default function PayrollTracker() {
 
   const saveEntry = async () => {
     if (!currentEntry.hours || parseFloat(currentEntry.hours) <= 0) {
-      alert('근무 시간을 입력해주세요!');
+      alert(t.enterWorkHours);
       return;
     }
 
@@ -119,7 +225,7 @@ export default function PayrollTracker() {
           .eq('id', editingId);
 
         if (error) throw error;
-        alert('수정 성공! ✅');
+        alert(t.editSuccess);
         setEditingId(null);
       } else {
         const { error } = await supabase
@@ -128,7 +234,7 @@ export default function PayrollTracker() {
           .select();
 
         if (error) throw error;
-        alert('저장 성공! ✅');
+        alert(t.saveSuccess);
       }
 
       await fetchEntries();
@@ -143,7 +249,7 @@ export default function PayrollTracker() {
       });
     } catch (error) {
       console.error('Error saving entry:', error);
-      alert('저장 실패: ' + error.message);
+      alert(t.saveFailed + error.message);
     }
   };
 
@@ -157,10 +263,10 @@ export default function PayrollTracker() {
       if (error) throw error;
 
       await fetchEntries();
-      alert('삭제 성공! ✅');
+      alert(t.deleteSuccess);
     } catch (error) {
       console.error('Error deleting entry:', error);
-      alert('삭제 실패: ' + error.message);
+      alert(t.deleteFailed + error.message);
     }
   };
 
@@ -222,11 +328,10 @@ export default function PayrollTracker() {
     const filtered = getFilteredEntries().sort((a, b) => new Date(a.date) - new Date(b.date));
     
     if (filtered.length === 0) {
-      alert('기록이 없습니다!');
+      alert(t.noRecordsForReport);
       return;
     }
 
-    // 1주 단위로 그룹화 (월요일 시작)
     const weeklyGroups = [];
 
     filtered.forEach(entry => {
@@ -234,16 +339,13 @@ export default function PayrollTracker() {
       const entryDate = new Date(year, month - 1, day);
       const dayOfWeek = entryDate.getDay();
       
-      // 그 주의 월요일 찾기
       const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
       const mondayDate = new Date(year, month - 1, day - daysFromMonday);
       
-      // 주차 계산
       const reference = new Date(2024, 0, 1);
       const diffTime = mondayDate - reference;
       const weekNumber = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
       
-      // 해당 주 찾기
       let group = weeklyGroups.find(g => g.weekNumber === weekNumber);
       if (!group) {
         group = { weekNumber, entries: [] };
@@ -253,30 +355,27 @@ export default function PayrollTracker() {
       group.entries.push(entry);
     });
 
-    // 주차순 정렬
     weeklyGroups.sort((a, b) => a.weekNumber - b.weekNumber);
 
     let report = '';
     let grandTotal = 0;
 
-weeklyGroups.forEach((group, index) => {
+    weeklyGroups.forEach((group, index) => {
       const entries = group.entries;
       let weekTotal = 0;
       let holidayTotal = 0;
       
-      // 홀리데이를 먼저, 그 다음 날짜순으로 정렬
       entries.sort((a, b) => {
         if (a.is_holiday && !b.is_holiday) return -1;
         if (!a.is_holiday && b.is_holiday) return 1;
         return a.date.localeCompare(b.date);
       });
       
-      // 홀리데이 항목 먼저 출력
       const holidayEntries = entries.filter(e => e.is_holiday);
       holidayEntries.forEach(entry => {
         const [year, month, day] = entry.date.split('-').map(Number);
         const date = new Date(year, month - 1, day);
-        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayNames = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const dayName = dayNames[date.getDay()];
         const dateStr = `${month}/${day}`;
         
@@ -284,7 +383,7 @@ weeklyGroups.forEach((group, index) => {
         const endTime = entry.end_time || '';
         const timeRange = startTime && endTime ? `${startTime}-${endTime}` : '';
         
-        report += `${dateStr} ${dayName} ${timeRange} (${entry.hours}h) [홀리데이]\n`;
+        report += `${dateStr} ${dayName} ${timeRange} (${entry.hours}h) [${lang === 'ko' ? '홀리데이' : 'Holiday'}]\n`;
         holidayTotal += parseFloat(entry.hours || 0);
       });
       
@@ -292,12 +391,11 @@ weeklyGroups.forEach((group, index) => {
         report += `-> ${holidayTotal.toFixed(2)}h\n`;
       }
       
-      // 일반 근무 항목 출력
       const regularEntries = entries.filter(e => !e.is_holiday);
       regularEntries.forEach(entry => {
         const [year, month, day] = entry.date.split('-').map(Number);
         const date = new Date(year, month - 1, day);
-        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayNames = lang === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const dayName = dayNames[date.getDay()];
         const dateStr = `${month}/${day}`;
         
@@ -315,7 +413,6 @@ weeklyGroups.forEach((group, index) => {
       
       grandTotal += weekTotal;
       
-      // 2주마다 구분선 (홀수 인덱스 다음에)
       if (index % 2 === 1) {
         report += `--------------------------------\n`;
       }
@@ -324,7 +421,7 @@ weeklyGroups.forEach((group, index) => {
     report += `Total: ${grandTotal.toFixed(2)}h`;
 
     navigator.clipboard.writeText(report).then(() => {
-      alert('리포트가 클립보드에 복사되었습니다! 📋');
+      alert(t.reportCopied);
     }).catch(() => {
       const textarea = document.createElement('textarea');
       textarea.value = report;
@@ -332,7 +429,7 @@ weeklyGroups.forEach((group, index) => {
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
-      alert('리포트가 복사되었습니다! 📋');
+      alert(t.reportCopied);
     });
   };
 
@@ -342,20 +439,33 @@ weeklyGroups.forEach((group, index) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       {loading ? (
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-2xl font-bold text-gray-700">로딩 중...</div>
+          <div className="text-2xl font-bold text-gray-700">{t.loading}</div>
         </div>
       ) : (
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-            <DollarSign className="text-green-600" />
-            급여 관리 시스템
-          </h1>
-          <p className="text-gray-600 mb-6">레스토랑 근무 시간 및 팁 관리</p>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <DollarSign className="text-green-600" />
+                {t.title}
+              </h1>
+              <p className="text-gray-600 mb-6">{t.subtitle}</p>
+            </div>
+            
+            {/* 언어 전환 버튼 */}
+            <button
+              onClick={() => setLang(lang === 'en' ? 'ko' : 'en')}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+            >
+              <Globe className="w-4 h-4" />
+              {lang === 'en' ? '한국어' : 'English'}
+            </button>
+          </div>
 
           <div className="mb-6 p-4 bg-blue-50 rounded-lg">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              시급 설정 (CAD)
+              {t.hourlyRate}
             </label>
             <input
               type="number"
@@ -366,10 +476,10 @@ weeklyGroups.forEach((group, index) => {
             />
             
             <div className="mt-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">공제율 설정 (%)</p>
+              <p className="text-sm font-medium text-gray-700 mb-2">{t.deductions}</p>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-xs text-gray-600">CPP</label>
+                  <label className="text-xs text-gray-600">{t.cpp}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -379,7 +489,7 @@ weeklyGroups.forEach((group, index) => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-600">EI</label>
+                  <label className="text-xs text-gray-600">{t.ei}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -389,7 +499,7 @@ weeklyGroups.forEach((group, index) => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-600">소득세</label>
+                  <label className="text-xs text-gray-600">{t.incomeTax}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -400,7 +510,7 @@ weeklyGroups.forEach((group, index) => {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                총 공제율: {(deductions.cpp + deductions.ei + deductions.tax).toFixed(2)}%
+                {t.totalDeductions}: {(deductions.cpp + deductions.ei + deductions.tax).toFixed(2)}%
               </p>
             </div>
           </div>
@@ -409,7 +519,7 @@ weeklyGroups.forEach((group, index) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="inline w-4 h-4 mr-1" />
-                날짜
+                {t.date}
               </label>
               <input
                 type="date"
@@ -423,7 +533,7 @@ weeklyGroups.forEach((group, index) => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Clock className="inline w-4 h-4 mr-1" />
-                  시작 시간
+                  {t.startTime}
                 </label>
                 <input
                   type="time"
@@ -436,7 +546,7 @@ weeklyGroups.forEach((group, index) => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Clock className="inline w-4 h-4 mr-1" />
-                  끝 시간
+                  {t.endTime}
                 </label>
                 <input
                   type="time"
@@ -449,14 +559,14 @@ weeklyGroups.forEach((group, index) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                근무 시간 (자동 계산)
+                {t.workHours}
               </label>
               <input
                 type="number"
                 step="0.01"
                 value={currentEntry.hours}
                 onChange={(e) => setCurrentEntry({...currentEntry, hours: e.target.value})}
-                placeholder="자동으로 계산됩니다"
+                placeholder={t.autoCalculated}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -464,7 +574,7 @@ weeklyGroups.forEach((group, index) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <DollarSign className="inline w-4 h-4 mr-1" />
-                팁 (CAD)
+                {t.tips}
               </label>
               <input
                 type="number"
@@ -484,7 +594,7 @@ weeklyGroups.forEach((group, index) => {
                   onChange={(e) => setCurrentEntry({...currentEntry, isHoliday: e.target.checked})}
                   className="w-5 h-5 text-orange-600 rounded focus:ring-2 focus:ring-orange-500"
                 />
-                <span className="font-medium text-orange-700">홀리데이 (1.5배)</span>
+                <span className="font-medium text-orange-700">{t.holiday}</span>
               </label>
             </div>
           </div>
@@ -493,7 +603,7 @@ weeklyGroups.forEach((group, index) => {
             onClick={saveEntry}
             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition shadow-md"
           >
-            {editingId ? '✏️ 수정 완료' : '근무 기록 저장'}
+            {editingId ? `✏️ ${t.edit}` : t.save}
           </button>
           
           {editingId && (
@@ -501,7 +611,7 @@ weeklyGroups.forEach((group, index) => {
               onClick={cancelEdit}
               className="w-full mt-2 bg-gray-500 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition shadow-md"
             >
-              취소
+              {t.cancel}
             </button>
           )}
         </div>
@@ -510,7 +620,7 @@ weeklyGroups.forEach((group, index) => {
           <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
               <TrendingUp className="text-green-600" />
-              통계
+              {t.statistics}
             </h2>
             
             <div className="flex gap-2 flex-wrap">
@@ -518,7 +628,7 @@ weeklyGroups.forEach((group, index) => {
                 onClick={generateReport}
                 className="px-4 py-2 rounded-lg font-medium transition bg-green-600 text-white hover:bg-green-700"
               >
-                📋 리포트 복사
+                📋 {t.copyReport}
               </button>
               <button
                 onClick={() => setViewMode('recent')}
@@ -528,7 +638,7 @@ weeklyGroups.forEach((group, index) => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                최근
+                {t.recent}
               </button>
               <button
                 onClick={() => setViewMode('custom')}
@@ -538,7 +648,7 @@ weeklyGroups.forEach((group, index) => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                기간 선택
+                {t.selectPeriod}
               </button>
             </div>
           </div>
@@ -553,7 +663,7 @@ weeklyGroups.forEach((group, index) => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                최근 2주
+                {t.last2weeks}
               </button>
               <button
                 onClick={() => setViewPeriod('4weeks')}
@@ -563,14 +673,14 @@ weeklyGroups.forEach((group, index) => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                최근 4주
+                {t.last4weeks}
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  시작일
+                  {t.startDate}
                 </label>
                 <input
                   type="date"
@@ -581,7 +691,7 @@ weeklyGroups.forEach((group, index) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  종료일
+                  {t.endDate}
                 </label>
                 <input
                   type="date"
@@ -595,109 +705,107 @@ weeklyGroups.forEach((group, index) => {
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
-              <p className="text-sm text-blue-600 font-medium mb-1">총 근무시간</p>
+              <p className="text-sm text-blue-600 font-medium mb-1">{t.totalHours}</p>
               <p className="text-2xl font-bold text-blue-900">{stats.totalHours.toFixed(1)}h</p>
-              <p className="text-xs text-blue-600 mt-1">
-                일반: {stats.regularHours.toFixed(1)}h | 홀리데이: {stats.holidayHours.toFixed(1)}h
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 font-medium mb-1">총 급여</p>
-              <p className="text-2xl font-bold text-gray-900">${stats.totalGrossPay.toFixed(2)}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg">
-              <p className="text-sm text-red-600 font-medium mb-1">총 공제</p>
-              <p className="text-2xl font-bold text-red-900">-${stats.totalDeductions.toFixed(2)}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
-              <p className="text-sm text-green-600 font-medium mb-1">실수령액</p>
-              <p className="text-2xl font-bold text-green-900">${stats.totalNetPay.toFixed(2)}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
-              <p className="text-sm text-purple-600 font-medium mb-1">팁</p>
-              <p className="text-2xl font-bold text-purple-900">${stats.totalTips.toFixed(2)}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg">
-              <p className="text-sm text-orange-600 font-medium mb-1">총 수입</p>
-              <p className="text-2xl font-bold text-orange-900">
-                ${(stats.totalNetPay + stats.totalTips).toFixed(2)}
-              </p>
-            </div>
-          </div>
+<p className="text-xs text-blue-600 mt-1">
+{t.regular}: {stats.regularHours.toFixed(1)}h | {t.holiday.split(' ')[0]}: {stats.holidayHours.toFixed(1)}h
+</p>
+</div>
+<div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg">
+          <p className="text-sm text-gray-600 font-medium mb-1">{t.grossPay}</p>
+          <p className="text-2xl font-bold text-gray-900">${stats.totalGrossPay.toFixed(2)}</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">근무 기록</h2>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {getFilteredEntries().map((entry) => (
-              <div
-                key={entry.id}
-                className={`p-4 rounded-lg border-l-4 ${
-                  entry.is_holiday ? 'border-orange-500 bg-orange-50' : 'border-blue-500 bg-blue-50'
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-semibold text-gray-800">{entry.date}</span>
-                      {entry.is_holiday && (
-                        <span className="px-2 py-1 bg-orange-200 text-orange-800 text-xs font-medium rounded">
-                          홀리데이
-                        </span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <span className="text-gray-600">시간: </span>
-                        <span className="font-medium">{entry.hours}h</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">총 급여: </span>
-                        <span className="font-medium text-gray-700">${(entry.gross_pay || 0).toFixed(2)}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">공제: </span>
-                        <span className="font-medium text-red-700">-${(entry.deductions || 0).toFixed(2)}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">실수령: </span>
-                        <span className="font-medium text-green-700">${(entry.net_pay || 0).toFixed(2)}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">팁: </span>
-                        <span className="font-medium text-purple-700">${(entry.tips || 0).toFixed(2)}</span>
-                      </div>
-                    </div>
+        <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg">
+          <p className="text-sm text-red-600 font-medium mb-1">{t.totalDeduction}</p>
+          <p className="text-2xl font-bold text-red-900">-${stats.totalDeductions.toFixed(2)}</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
+          <p className="text-sm text-green-600 font-medium mb-1">{t.netPay}</p>
+          <p className="text-2xl font-bold text-green-900">${stats.totalNetPay.toFixed(2)}</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+          <p className="text-sm text-purple-600 font-medium mb-1">{t.tips}</p>
+          <p className="text-2xl font-bold text-purple-900">${stats.totalTips.toFixed(2)}</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg">
+          <p className="text-sm text-orange-600 font-medium mb-1">{t.totalIncome}</p>
+          <p className="text-2xl font-bold text-orange-900">
+            ${(stats.totalNetPay + stats.totalTips).toFixed(2)}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div className="bg-white rounded-2xl shadow-xl p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">{t.workRecords}</h2>
+      <div className="space-y-3 max-h-96 overflow-y-auto">
+        {getFilteredEntries().map((entry) => (
+          <div
+            key={entry.id}
+            className={`p-4 rounded-lg border-l-4 ${
+              entry.is_holiday ? 'border-orange-500 bg-orange-50' : 'border-blue-500 bg-blue-50'
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-semibold text-gray-800">{entry.date}</span>
+                  {entry.is_holiday && (
+                    <span className="px-2 py-1 bg-orange-200 text-orange-800 text-xs font-medium rounded">
+                      {t.holiday.split(' ')[0]}
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-600">{t.time}: </span>
+                    <span className="font-medium">{entry.hours}h</span>
                   </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => editEntry(entry)}
-                      className="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm font-medium"
-                    >
-                      수정
-                    </button>
-                    <button
-                      onClick={() => deleteEntry(entry.id)}
-                      className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition text-sm font-medium"
-                    >
-                      삭제
-                    </button>
+                  <div>
+                    <span className="text-gray-600">{t.grossPay}: </span>
+                    <span className="font-medium text-gray-700">${(entry.gross_pay || 0).toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">{t.deduction}: </span>
+                    <span className="font-medium text-red-700">-${(entry.deductions || 0).toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">{t.received}: </span>
+                    <span className="font-medium text-green-700">${(entry.net_pay || 0).toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">{t.tips}: </span>
+                    <span className="font-medium text-purple-700">${(entry.tips || 0).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
-            ))}
-            {getFilteredEntries().length === 0 && (
-              <p className="text-center text-gray-500 py-8">아직 기록이 없습니다.</p>
-            )}
+              <div className="flex gap-2 ml-4">
+                <button
+                  onClick={() => editEntry(entry)}
+                  className="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm font-medium"
+                >
+                  {t.modify}
+                </button>
+                <button
+                  onClick={() => deleteEntry(entry.id)}
+                  className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition text-sm font-medium"
+                >
+                  {t.delete}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        ))}
+        {getFilteredEntries().length === 0 && (
+          <p className="text-center text-gray-500 py-8">{t.noRecords}</p>
+        )}
       </div>
-      )}
     </div>
-  );
+  </div>
+  )}
+</div>);
 }

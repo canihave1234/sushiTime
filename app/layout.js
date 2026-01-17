@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "system",
+  title: "sushitime",
   description: "for SY",
 };
 
